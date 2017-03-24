@@ -12,8 +12,7 @@
       // The Client ID obtained from the Google Developers Console. Replace with your own Client ID.
       var clientId = "670438381526-24npq8td5gc18p48mrg1bdqnhqikra7m.apps.googleusercontent.com"
 
-      // Scope to use to access user's photos.
-      var scope = ['https://www.googleapis.com/auth/photos'];
+      var scope = ['https://www.googleapis.com/auth/drive.readonly'];
 
       var pickerApiLoaded = false;
       var oauthToken;
@@ -46,11 +45,11 @@
         }
       }
 
-      // Create and render a Picker object for picking user Photos.
+      
       function createPicker() {
         if (pickerApiLoaded && oauthToken) {
           var picker = new google.picker.PickerBuilder().
-              addView(google.picker.ViewId.PHOTOS).
+              addView(google.picker.ViewId.DOCS).
               setOAuthToken(oauthToken).
               setDeveloperKey(developerKey).
               setCallback(pickerCallback).
