@@ -30,14 +30,20 @@ define('app',['exports'], function (exports) {
       };
     }
 
-    App.prototype.attached = function attached() {};
+    App.prototype.attached = function attached() {
+      var _this = this;
+
+      gapi.load('client:auth2', function () {
+        _this.login();
+      });
+    };
 
     App.prototype.login = function login() {
-      var _this = this;
+      var _this2 = this;
 
       this.loginService.initClient(function (loggedIn) {
         if (!loggedIn) {
-          _this.loginService.signIn();
+          _this2.loginService.signIn();
         }
       });
     };
@@ -52,11 +58,11 @@ define('app',['exports'], function (exports) {
     };
 
     App.prototype.getFiles = function getFiles() {
-      var _this2 = this;
+      var _this3 = this;
 
       this.driveService.listFiles("gDriveSync", function (err, files) {
         console.log(err, files);
-        _this2.files = files;
+        _this3.files = files;
       });
     };
 

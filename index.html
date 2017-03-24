@@ -24,6 +24,10 @@
           });
       });
     }
+
+    function loadFiles(){
+      gapi.client.drive.files.list().then(function(response){ console.log(response);});
+    }
   </script>
   <script src="https://apis.google.com/js/api.js?onload=initGapi"></script>-->
   <script src="https://apis.google.com/js/api.js"></script>
