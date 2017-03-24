@@ -86,7 +86,9 @@
         "name": "vendor-bundle.js",
         "prepend": [
           "node_modules/bluebird/js/browser/bluebird.core.js",
-          "scripts/require.js"
+          "scripts/require.js",
+          "node_modules/gdrive-sync-js/lib/login.service.js",
+          "node_modules/gdrive-sync-js/lib/drive.service.js"
         ],
         "dependencies": [
           "aurelia-binding",

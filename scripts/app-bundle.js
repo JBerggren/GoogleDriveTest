@@ -11,11 +11,48 @@ define('app',['exports'], function (exports) {
     }
   }
 
-  var App = exports.App = function App() {
-    _classCallCheck(this, App);
+  var App = exports.App = function () {
+    function App() {
+      _classCallCheck(this, App);
 
-    this.message = 'Hello World!';
-  };
+      var SCOPES = 'https://www.googleapis.com/auth/drive.file';
+      var CLIENT_ID = '670438381526-24npq8td5gc18p48mrg1bdqnhqikra7m.apps.googleusercontent.com';
+      var DISCOVERY_DOCS = ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'];
+
+      this.loginService = new LoginService(CLIENT_ID, SCOPES, DISCOVERY_DOCS);
+      this.driveService = new DriveService();
+      this.files = [];
+    }
+
+    App.prototype.attached = function attached() {
+      var _this = this;
+
+      gapi.load('client:auth2', function () {
+        _this.login();
+      });
+    };
+
+    App.prototype.login = function login() {
+      var _this2 = this;
+
+      this.loginService.initClient(function (loggedIn) {
+        if (!loggedIn) {
+          _this2.loginService.signIn();
+        }
+      });
+    };
+
+    App.prototype.getFiles = function getFiles() {
+      var _this3 = this;
+
+      this.driveService.getFiles("", function (err, files) {
+        console.log(err, files);
+        _this3.files = files;
+      });
+    };
+
+    return App;
+  }();
 });
 define('component',['exports', 'aurelia-framework'], function (exports, _aureliaFramework) {
     'use strict';
@@ -143,6 +180,6 @@ define('resources/index',["exports"], function (exports) {
   exports.configure = configure;
   function configure(config) {}
 });
-define('text!app.html', ['module'], function(module) { module.exports = "<template>\n  <require from='component'></require>\n  <h1>${message}</h1>\n  <component name=\"Bob\"></component>\n</template>\n"; });
+define('text!app.html', ['module'], function(module) { module.exports = "<template>\r\n <button click.trigger=\"getFiles()\">List files</button>\r\n</template>\r\n"; });
 define('text!component.html', ['module'], function(module) { module.exports = "<template>\r\n    My component '${name}'\r\n</template>"; });
 //# sourceMappingURL=app-bundle.js.map
