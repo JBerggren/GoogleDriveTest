@@ -6,6 +6,26 @@
 </head>
 
 <body aurelia-app="main">
+  <!--<script type="text/javascript">
+    function initGapi() {
+      var SCOPES = 'https://www.googleapis.com/auth/drive'
+      var CLIENT_ID = '670438381526-24npq8td5gc18p48mrg1bdqnhqikra7m.apps.googleusercontent.com';
+      var DISCOVERY_DOCS = ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'];
+      gapi.load('client:auth2', function () {
+        gapi.client.init(
+          {
+            discoveryDocs: DISCOVERY_DOCS,
+            clientId: CLIENT_ID,
+            scope: SCOPES
+          },
+          function (res) {
+            gapi.auth2.getAuthInstance().signIn();
+            console.log(res);
+          });
+      });
+    }
+  </script>
+  <script src="https://apis.google.com/js/api.js?onload=initGapi"></script>-->
   <script src="https://apis.google.com/js/api.js"></script>
   <script src="scripts/vendor-bundle.js" data-main="aurelia-bootstrapper">
   </script>

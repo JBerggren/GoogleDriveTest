@@ -22,32 +22,41 @@ define('app',['exports'], function (exports) {
       this.loginService = new LoginService(CLIENT_ID, SCOPES, DISCOVERY_DOCS);
       this.driveService = new DriveService();
       this.files = [];
+      this.currentFile = {
+        content: '',
+        id: null,
+        name: 'gDriveSync.example.txt',
+        parents: []
+      };
     }
 
-    App.prototype.attached = function attached() {
-      var _this = this;
-
-      gapi.load('client:auth2', function () {
-        _this.login();
-      });
-    };
+    App.prototype.attached = function attached() {};
 
     App.prototype.login = function login() {
-      var _this2 = this;
+      var _this = this;
 
       this.loginService.initClient(function (loggedIn) {
         if (!loggedIn) {
-          _this2.loginService.signIn();
+          _this.loginService.signIn();
         }
       });
     };
 
-    App.prototype.getFiles = function getFiles() {
-      var _this3 = this;
+    App.prototype.save = function save() {
+      var content = "Hello world";
+      this.currentFile.content = content;
+      this.driveService.saveFile(this.currentFile, function (file) {
+        this.currentFile = file;
+        console.log('saved file with id:' + file.id);
+      });
+    };
 
-      this.driveService.getFiles("", function (err, files) {
+    App.prototype.getFiles = function getFiles() {
+      var _this2 = this;
+
+      this.driveService.listFiles("gDriveSync", function (err, files) {
         console.log(err, files);
-        _this3.files = files;
+        _this2.files = files;
       });
     };
 
@@ -180,6 +189,6 @@ define('resources/index',["exports"], function (exports) {
   exports.configure = configure;
   function configure(config) {}
 });
-define('text!app.html', ['module'], function(module) { module.exports = "<template>\r\n <button click.trigger=\"getFiles()\">List files</button>\r\n</template>\r\n"; });
+define('text!app.html', ['module'], function(module) { module.exports = "<template>\r\n <button click.trigger=\"getFiles()\">List files</button>\r\n <button click.trigger=\"save()\">Save a file</button>\r\n</template>\r\n"; });
 define('text!component.html', ['module'], function(module) { module.exports = "<template>\r\n    My component '${name}'\r\n</template>"; });
 //# sourceMappingURL=app-bundle.js.map

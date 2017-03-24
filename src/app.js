@@ -7,10 +7,16 @@ export class App {
     this.loginService = new LoginService(CLIENT_ID, SCOPES, DISCOVERY_DOCS);
     this.driveService = new DriveService();
     this.files = [];
+    this.currentFile = {
+      content: '',
+      id: null,
+      name: 'gDriveSync.example.txt',
+      parents: []
+    };
   }
 
   attached() {
-    gapi.load('client:auth2', ()=>{this.login();});
+    gapi.load('client:auth2', () => { this.login(); });
   }
 
   login() {
@@ -21,8 +27,17 @@ export class App {
     });
   }
 
+  save() {
+    var content = "Hello world";
+    this.currentFile.content = content;
+    this.driveService.saveFile(this.currentFile, function (file) {
+      this.currentFile = file
+      console.log('saved file with id:' + file.id)
+    });
+  }
+
   getFiles() {
-    this.driveService.getFiles("", (err, files) => {
+    this.driveService.listFiles("gDriveSync", (err, files) => {
       console.log(err, files);
       this.files = files;
     });
