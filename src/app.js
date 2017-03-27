@@ -35,6 +35,10 @@ export class App {
       console.log('saved file with id:' + file.id)
     });
   }
+  
+  signOut(){
+    this.loginService.signOut();
+  }
 
   getFiles() {
     this.driveService.listFiles("gDriveSync", (err, files) => {

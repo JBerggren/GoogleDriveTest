@@ -57,6 +57,10 @@ define('app',['exports'], function (exports) {
       });
     };
 
+    App.prototype.signOut = function signOut() {
+      this.loginService.signOut();
+    };
+
     App.prototype.getFiles = function getFiles() {
       var _this3 = this;
 
@@ -195,6 +199,6 @@ define('resources/index',["exports"], function (exports) {
   exports.configure = configure;
   function configure(config) {}
 });
-define('text!app.html', ['module'], function(module) { module.exports = "<template>\r\n <button click.trigger=\"getFiles()\">List files</button>\r\n <button click.trigger=\"save()\">Save a file</button>\r\n</template>\r\n"; });
+define('text!app.html', ['module'], function(module) { module.exports = "<template>\r\n <button click.trigger=\"getFiles()\">List files</button>\r\n <button click.trigger=\"save()\">Save a file</button>\r\n <button click.trigger=\"signOut()\">Logout</button>\r\n</template>\r\n"; });
 define('text!component.html', ['module'], function(module) { module.exports = "<template>\r\n    My component '${name}'\r\n</template>"; });
 //# sourceMappingURL=app-bundle.js.map
