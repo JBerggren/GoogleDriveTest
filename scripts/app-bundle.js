@@ -15,7 +15,7 @@ define('app',['exports'], function (exports) {
     function App() {
       _classCallCheck(this, App);
 
-      var SCOPES = 'https://www.googleapis.com/auth/drive.file';
+      var SCOPES = 'https://www.googleapis.com/auth/drive';
       var CLIENT_ID = '670438381526-24npq8td5gc18p48mrg1bdqnhqikra7m.apps.googleusercontent.com';
       var DISCOVERY_DOCS = ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'];
 
