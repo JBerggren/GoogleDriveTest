@@ -13,6 +13,7 @@ export class App {
       name: 'gDriveSync.example.txt',
       parents: []
     };
+    var firstLoad = true;
   }
 
   attached() {
@@ -21,16 +22,26 @@ export class App {
 
   login() {
     this.loginService.initClient(loggedIn => {
-      if (!loggedIn) {
+      if (!loggedIn && this.firstLoad) {
         this.loginService.signIn();
+        this.firstLoad = false;
       }
+    });
+  }
+
+  load(){
+    var id ="0B4zMwTR7Nf6SdVRHQWVNUXhpY00";
+    var file = {id:id};
+    this.driveService.loadFile(file,file=>{
+      console.log(file);
     });
   }
 
   save() {
     var content = "Hello world";
     this.currentFile.content = content;
-    this.driveService.saveFile(this.currentFile, function (file) {
+    this.currentFile.name = "my file.json";
+    this.driveService.saveFile(this.currentFile,  file => {
       this.currentFile = file
       console.log('saved file with id:' + file.id)
     });
@@ -41,7 +52,7 @@ export class App {
   }
 
   getFiles() {
-    this.driveService.listFiles("gDriveSync", (err, files) => {
+    this.driveService.listFiles("*", (err, files) => {
       console.log(err, files);
       this.files = files;
     });

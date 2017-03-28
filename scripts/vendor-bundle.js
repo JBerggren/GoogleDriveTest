@@ -3847,33 +3847,38 @@ function LoginService(clientId, scopes, discoveryDocs){
      
 }
 
-function DriveService(){ 
+function DriveService() {
 
   //*****************************************************
   //GENERIC METHODS
   //*****************************************************
-  
-  this.loadFile = function(file, done) {
-    gapi.client.drive.files.export({
-      fileId: file.id,
-      mimeType: 'text/plain',
-      fields: 'id,name,parents'
-    }).then(function(resp) {
-      var retFile = {name: file.name, id: file.id, content: resp.body, parents: file.parents};
+
+  this.loadFile = function (file, done) {
+    gapi.client.request({
+      path: 'https://www.googleapis.com/drive/v3/files/' + file.id,
+      method: 'get',
+      params: {
+        alt:"media",
+        mimeType: 'text/plain',
+        fields: 'id,name,parents'
+      }
+    }).then(function (resp) {
+      console.log(resp);
+      var retFile = { name: file.name, id: file.id, content: resp.body, parents: file.parents };
       done(retFile);
     });
   }
 
-  this.saveFile = function(file, done) {
+  this.saveFile = function (file, done) {
     function addContent(fileId) {
       return gapi.client.request({
-          path: '/upload/drive/v3/files/' + fileId,
-          method: 'PATCH',
-          params: {
-            uploadType: 'media'
-          },
-          body: file.content
-        })
+        path: '/upload/drive/v3/files/' + fileId,
+        method: 'PATCH',
+        params: {
+          uploadType: 'media'
+        },
+        body: file.content
+      })
     }
     var metadata = {
       mimeType: 'application/vnd.google-apps.document',
@@ -3885,70 +3890,74 @@ function DriveService(){
     }
 
     if (file.id) { //just update
-      addContent(file.id).then(function(resp) {
+      addContent(file.id).then(function (resp) {
         console.log('File just updated', resp.result);
         done(resp.result);
       })
     } else { //create and update
-      gapi.client.drive.files.create({
-        resource: metadata
-      }).then(function(resp) {
-        addContent(resp.result.id).then(function(resp) {
+      gapi.client.request({
+        path: "https://www.googleapis.com/drive/v3/files",
+        method: "post",
+        params: {
+          resource: metadata
+        }
+      }).then(function (resp) {
+        addContent(resp.result.id).then(function (resp) {
           console.log('created and added content', resp.result);
           done(resp.result);
-        })
+        });
       });
     }
   }
 
-  this.list = function(resource,  done) {
-    var query= ' name contains "'+resource.query_name+'" '
+  this.list = function (resource, done) {
+    var query = ' name contains "' + resource.query_name + '" '
     if (resource.parents) {
-      query+= ' and "'+resource.parents+'" in parents '
+      query += ' and "' + resource.parents + '" in parents '
     }
     if (resource.mimeType) {
-      query += ' and mimeType="'+resource.mimeType+'" '
-    } 
+      query += ' and mimeType="' + resource.mimeType + '" '
+    }
     if (resource.trashed != undefined) {
-      query += ' and trashed='+resource.trashed+' ';
+      query += ' and trashed=' + resource.trashed + ' ';
     }
     gapi.client.request({
-      path:"https://www.googleapis.com/drive/v3/files",
-      method:"get",
-      params:{
-        pageSize:30,
+      path: "https://www.googleapis.com/drive/v3/files",
+      method: "get",
+      params: {
+        pageSize: 30,
         corpus: 'user',
         spaces: 'drive',
         fields: "nextPageToken, files(id, name, mimeType)",
         q: query,
         orderBy: resource.orderBy || 'modifiedTime desc'
       }
-    }).then(function(resp) {
+    }).then(function (resp) {
       return done(null, resp.result.files);
-    },function(reason) {
+    }, function (reason) {
       return done(reason, null);
     });
   }
-  
+
   //*****************************************************
   //SPECIFIC METHODS TO MAKE IT EASIER TO USE
   //*****************************************************
 
-  
-  this.listFilesAt = function(query_name, parents, done) {
-    this.list({query_name:query_name, parents:parents, trashed:false}, done)
+
+  this.listFilesAt = function (query_name, parents, done) {
+    this.list({ query_name: query_name, parents: parents, trashed: false }, done)
   }
 
-  this.listFiles = function(query_name, done) {
-    this.list({query_name:query_name, trashed:false}, done)
+  this.listFiles = function (query_name, done) {
+    this.list({ query_name: query_name, trashed: false }, done)
   }
 
-  this.listFolders = function(query_name, parents, done) {
-    this.list({query_name:query_name, mimeType: 'application/vnd.google-apps.folder', trashed:false}, done)
+  this.listFolders = function (query_name, parents, done) {
+    this.list({ query_name: query_name, mimeType: 'application/vnd.google-apps.folder', trashed: false }, done)
   }
-  
-  this.listFoldersAt = function(query_name, parents, done) {
-    this.list({query_name:query_name, parents:parents, mimeType: 'application/vnd.google-apps.folder', trashed:false}, done)
+
+  this.listFoldersAt = function (query_name, parents, done) {
+    this.list({ query_name: query_name, parents: parents, mimeType: 'application/vnd.google-apps.folder', trashed: false }, done)
   }
 
 }
@@ -25366,4 +25375,4 @@ define('aurelia-testing/wait',['exports'], function (exports) {
     }, options);
   }
 });
-function _aureliaConfigureModuleLoader(){requirejs.config({"baseUrl":"src/","paths":{"text":"../scripts/text","aurelia-dependency-injection":"..\\node_modules\\aurelia-dependency-injection\\dist\\amd\\aurelia-dependency-injection","aurelia-bootstrapper":"..\\node_modules\\aurelia-bootstrapper\\dist\\amd\\aurelia-bootstrapper","aurelia-event-aggregator":"..\\node_modules\\aurelia-event-aggregator\\dist\\amd\\aurelia-event-aggregator","aurelia-binding":"..\\node_modules\\aurelia-binding\\dist\\amd\\aurelia-binding","aurelia-history":"..\\node_modules\\aurelia-history\\dist\\amd\\aurelia-history","aurelia-history-browser":"..\\node_modules\\aurelia-history-browser\\dist\\amd\\aurelia-history-browser","aurelia-framework":"..\\node_modules\\aurelia-framework\\dist\\amd\\aurelia-framework","aurelia-loader":"..\\node_modules\\aurelia-loader\\dist\\amd\\aurelia-loader","aurelia-loader-default":"..\\node_modules\\aurelia-loader-default\\dist\\amd\\aurelia-loader-default","aurelia-logging-console":"..\\node_modules\\aurelia-logging-console\\dist\\amd\\aurelia-logging-console","aurelia-logging":"..\\node_modules\\aurelia-logging\\dist\\amd\\aurelia-logging","aurelia-pal":"..\\node_modules\\aurelia-pal\\dist\\amd\\aurelia-pal","aurelia-pal-browser":"..\\node_modules\\aurelia-pal-browser\\dist\\amd\\aurelia-pal-browser","aurelia-metadata":"..\\node_modules\\aurelia-metadata\\dist\\amd\\aurelia-metadata","aurelia-path":"..\\node_modules\\aurelia-path\\dist\\amd\\aurelia-path","aurelia-polyfills":"..\\node_modules\\aurelia-polyfills\\dist\\amd\\aurelia-polyfills","aurelia-route-recognizer":"..\\node_modules\\aurelia-route-recognizer\\dist\\amd\\aurelia-route-recognizer","aurelia-task-queue":"..\\node_modules\\aurelia-task-queue\\dist\\amd\\aurelia-task-queue","aurelia-router":"..\\node_modules\\aurelia-router\\dist\\amd\\aurelia-router","aurelia-templating-binding":"..\\node_modules\\aurelia-templating-binding\\dist\\amd\\aurelia-templating-binding","aurelia-templating":"..\\node_modules\\aurelia-templating\\dist\\amd\\aurelia-templating","app-bundle":"../scripts/app-bundle"},"packages":[{"name":"aurelia-templating-resources","location":"../node_modules/aurelia-templating-resources/dist/amd","main":"aurelia-templating-resources"},{"name":"aurelia-templating-router","location":"../node_modules/aurelia-templating-router/dist/amd","main":"aurelia-templating-router"},{"name":"aurelia-testing","location":"../node_modules/aurelia-testing/dist/amd","main":"aurelia-testing"}],"stubModules":["text"],"shim":{},"bundles":{"app-bundle":["app","component","environment","main","resources/index"]}})}
+function _aureliaConfigureModuleLoader(){requirejs.config({"baseUrl":"src/","paths":{"text":"../scripts/text","aurelia-binding":"..\\node_modules\\aurelia-binding\\dist\\amd\\aurelia-binding","aurelia-framework":"..\\node_modules\\aurelia-framework\\dist\\amd\\aurelia-framework","aurelia-loader-default":"..\\node_modules\\aurelia-loader-default\\dist\\amd\\aurelia-loader-default","aurelia-event-aggregator":"..\\node_modules\\aurelia-event-aggregator\\dist\\amd\\aurelia-event-aggregator","aurelia-bootstrapper":"..\\node_modules\\aurelia-bootstrapper\\dist\\amd\\aurelia-bootstrapper","aurelia-dependency-injection":"..\\node_modules\\aurelia-dependency-injection\\dist\\amd\\aurelia-dependency-injection","aurelia-history-browser":"..\\node_modules\\aurelia-history-browser\\dist\\amd\\aurelia-history-browser","aurelia-loader":"..\\node_modules\\aurelia-loader\\dist\\amd\\aurelia-loader","aurelia-history":"..\\node_modules\\aurelia-history\\dist\\amd\\aurelia-history","aurelia-logging-console":"..\\node_modules\\aurelia-logging-console\\dist\\amd\\aurelia-logging-console","aurelia-logging":"..\\node_modules\\aurelia-logging\\dist\\amd\\aurelia-logging","aurelia-pal-browser":"..\\node_modules\\aurelia-pal-browser\\dist\\amd\\aurelia-pal-browser","aurelia-metadata":"..\\node_modules\\aurelia-metadata\\dist\\amd\\aurelia-metadata","aurelia-pal":"..\\node_modules\\aurelia-pal\\dist\\amd\\aurelia-pal","aurelia-path":"..\\node_modules\\aurelia-path\\dist\\amd\\aurelia-path","aurelia-route-recognizer":"..\\node_modules\\aurelia-route-recognizer\\dist\\amd\\aurelia-route-recognizer","aurelia-router":"..\\node_modules\\aurelia-router\\dist\\amd\\aurelia-router","aurelia-task-queue":"..\\node_modules\\aurelia-task-queue\\dist\\amd\\aurelia-task-queue","aurelia-polyfills":"..\\node_modules\\aurelia-polyfills\\dist\\amd\\aurelia-polyfills","aurelia-templating":"..\\node_modules\\aurelia-templating\\dist\\amd\\aurelia-templating","aurelia-templating-binding":"..\\node_modules\\aurelia-templating-binding\\dist\\amd\\aurelia-templating-binding","app-bundle":"../scripts/app-bundle"},"packages":[{"name":"aurelia-templating-resources","location":"../node_modules/aurelia-templating-resources/dist/amd","main":"aurelia-templating-resources"},{"name":"aurelia-templating-router","location":"../node_modules/aurelia-templating-router/dist/amd","main":"aurelia-templating-router"},{"name":"aurelia-testing","location":"../node_modules/aurelia-testing/dist/amd","main":"aurelia-testing"}],"stubModules":["text"],"shim":{},"bundles":{"app-bundle":["app","component","environment","main","resources/index"]}})}

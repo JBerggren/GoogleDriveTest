@@ -28,6 +28,7 @@ define('app',['exports'], function (exports) {
         name: 'gDriveSync.example.txt',
         parents: []
       };
+      var firstLoad = true;
     }
 
     App.prototype.attached = function attached() {
@@ -42,17 +43,29 @@ define('app',['exports'], function (exports) {
       var _this2 = this;
 
       this.loginService.initClient(function (loggedIn) {
-        if (!loggedIn) {
+        if (!loggedIn && _this2.firstLoad) {
           _this2.loginService.signIn();
+          _this2.firstLoad = false;
         }
       });
     };
 
+    App.prototype.load = function load() {
+      var id = "0B4zMwTR7Nf6SdVRHQWVNUXhpY00";
+      var file = { id: id };
+      this.driveService.loadFile(file, function (file) {
+        console.log(file);
+      });
+    };
+
     App.prototype.save = function save() {
+      var _this3 = this;
+
       var content = "Hello world";
       this.currentFile.content = content;
+      this.currentFile.name = "my file.json";
       this.driveService.saveFile(this.currentFile, function (file) {
-        this.currentFile = file;
+        _this3.currentFile = file;
         console.log('saved file with id:' + file.id);
       });
     };
@@ -62,11 +75,11 @@ define('app',['exports'], function (exports) {
     };
 
     App.prototype.getFiles = function getFiles() {
-      var _this3 = this;
+      var _this4 = this;
 
-      this.driveService.listFiles("gDriveSync", function (err, files) {
+      this.driveService.listFiles("*", function (err, files) {
         console.log(err, files);
-        _this3.files = files;
+        _this4.files = files;
       });
     };
 
@@ -199,6 +212,6 @@ define('resources/index',["exports"], function (exports) {
   exports.configure = configure;
   function configure(config) {}
 });
-define('text!app.html', ['module'], function(module) { module.exports = "<template>\r\n <button click.trigger=\"getFiles()\">List files</button>\r\n <button click.trigger=\"save()\">Save a file</button>\r\n <button click.trigger=\"signOut()\">Logout</button>\r\n</template>\r\n"; });
+define('text!app.html', ['module'], function(module) { module.exports = "<template>\r\n <button click.trigger=\"getFiles()\">List files</button>\r\n <button click.trigger=\"load()\">Load file</button>\r\n <button click.trigger=\"save()\">Save a file</button>\r\n <button click.trigger=\"signOut()\">Logout</button>\r\n</template>\r\n"; });
 define('text!component.html', ['module'], function(module) { module.exports = "<template>\r\n    My component '${name}'\r\n</template>"; });
 //# sourceMappingURL=app-bundle.js.map
