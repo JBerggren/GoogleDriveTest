@@ -36,7 +36,8 @@ export class App {
 
   load(file) {
     console.log("Loading file")
-    this.driveService.get({ id: file.id }).then(file => {
+    this.driveService.get({ id: file.id }, file => {
+      console.log("Loaded file");
       console.log(file.content);
     });
   }
@@ -47,7 +48,7 @@ export class App {
       name: "Example.json",
     };
 
-    this.driveService.save(file).then(file => {
+    this.driveService.save(file,file => {
       console.log('saved file', file);
     });
   }

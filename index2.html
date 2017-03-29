@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Aurelia</title>
+  <script src="lib/login.service.js"></script>
+  <script src="lib/drive.service.js"></script>
+</head>
+
+<body aurelia-app="main">
+  <script type="text/javascript">
+    var SCOPES = 'https://www.googleapis.com/auth/drive'
+    var DEVELOPER_KEY = "AIzaSyDNz5LgtO9P0KFhwAa2XUlpx63qf7SYjNE";
+    var CLIENT_ID = '670438381526-24npq8td5gc18p48mrg1bdqnhqikra7m.apps.googleusercontent.com';
+    var DISCOVERY_DOCS = ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'];
+    var loginService = new LoginService(CLIENT_ID, SCOPES, DISCOVERY_DOCS);
+    var driveService = new DriveService(DEVELOPER_KEY);
+    function initGapi() {
+      var firstLoad = true;
+      gapi.load('picker', function () { console.log("Picker loaded"); })
+      gapi.load('client:auth2', function () {
+        loginService.initClient(function (isLoggedIn) {
+          if (!isLoggedIn && firstLoad) {
+            loginService.signIn();
+            firstLoad = false;
+          }
+          if (isLoggedIn) {
+            //listFiles();
+          }
+        });
+      });
+    }
+    function listFiles() {
+      driveService.listFiles("", function (error, files) {
+        var container = document.getElementById("response");
+        for (var i = 0; i < files.length; i++) {
+          var tag = document.createElement("div");
+          tag.innerText = files[i].name;
+          container.appendChild(tag);
+        }
+      });
+    }
+
+    function chooseFile() {
+      driveService.showPicker(function (file) {
+        
+        console.log(file);
+      });
+    }
+  </script>
+  <script src="https://apis.google.com/js/api.js?onload=initGapi"></script>
+  </script>
+  <button onclick="chooseFile()">Choose file</button>
+
+  <div id="response"></div>
+</body>
+
+</html>

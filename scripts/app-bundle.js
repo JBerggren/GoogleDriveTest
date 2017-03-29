@@ -50,7 +50,8 @@ define('app',['exports'], function (exports) {
 
     App.prototype.load = function load(file) {
       console.log("Loading file");
-      this.driveService.get({ id: file.id }).then(function (file) {
+      this.driveService.get({ id: file.id }, function (file) {
+        console.log("Loaded file");
         console.log(file.content);
       });
     };
@@ -61,7 +62,7 @@ define('app',['exports'], function (exports) {
         name: "Example.json"
       };
 
-      this.driveService.save(file).then(function (file) {
+      this.driveService.save(file, function (file) {
         console.log('saved file', file);
       });
     };
