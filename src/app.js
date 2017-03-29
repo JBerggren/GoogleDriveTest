@@ -7,12 +7,12 @@ export class App {
     this.loginService = new LoginService(CLIENT_ID, SCOPES, DISCOVERY_DOCS);
     this.driveService = new DriveService();
     this.files = [];
-    this.currentFile = {
-      content: '',
-      id: null,
-      name: 'gDriveSync.example.txt',
-      parents: []
-    };
+    // this.currentFile = {
+    //   content: '',
+    //   id: null,
+    //   name: 'gDriveSync.example.txt',
+    //   parents: []
+    // };
     var firstLoad = true;
   }
 
@@ -29,25 +29,26 @@ export class App {
     });
   }
 
-  load(){
-    var id ="0B4zMwTR7Nf6SdVRHQWVNUXhpY00";
-    var file = {id:id};
-    this.driveService.loadFile(file,file=>{
+  load() {
+    var id = "0B4zMwTR7Nf6SdVRHQWVNUXhpY00";
+    var file = { id: id };
+    this.driveService.get(file, file => {
       console.log(file);
     });
   }
 
   save() {
-    var content = "Hello world";
-    this.currentFile.content = content;
-    this.currentFile.name = "my file.json";
-    this.driveService.saveFile(this.currentFile,  file => {
-      this.currentFile = file
-      console.log('saved file with id:' + file.id)
+    var file = {
+      content: "Hello world!",
+      name: "Example",
+    };
+
+    this.driveService.save(file, file => {
+      console.log('saved file' + file.id);
     });
   }
-  
-  signOut(){
+
+  signOut() {
     this.loginService.signOut();
   }
 

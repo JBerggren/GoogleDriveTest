@@ -22,12 +22,7 @@ define('app',['exports'], function (exports) {
       this.loginService = new LoginService(CLIENT_ID, SCOPES, DISCOVERY_DOCS);
       this.driveService = new DriveService();
       this.files = [];
-      this.currentFile = {
-        content: '',
-        id: null,
-        name: 'gDriveSync.example.txt',
-        parents: []
-      };
+
       var firstLoad = true;
     }
 
@@ -53,20 +48,19 @@ define('app',['exports'], function (exports) {
     App.prototype.load = function load() {
       var id = "0B4zMwTR7Nf6SdVRHQWVNUXhpY00";
       var file = { id: id };
-      this.driveService.loadFile(file, function (file) {
+      this.driveService.get(file, function (file) {
         console.log(file);
       });
     };
 
     App.prototype.save = function save() {
-      var _this3 = this;
+      var file = {
+        content: "Hello world!",
+        name: "Example"
+      };
 
-      var content = "Hello world";
-      this.currentFile.content = content;
-      this.currentFile.name = "my file.json";
-      this.driveService.saveFile(this.currentFile, function (file) {
-        _this3.currentFile = file;
-        console.log('saved file with id:' + file.id);
+      this.driveService.save(file, function (file) {
+        console.log('saved file' + file.id);
       });
     };
 
@@ -75,11 +69,11 @@ define('app',['exports'], function (exports) {
     };
 
     App.prototype.getFiles = function getFiles() {
-      var _this4 = this;
+      var _this3 = this;
 
       this.driveService.listFiles("*", function (err, files) {
         console.log(err, files);
-        _this4.files = files;
+        _this3.files = files;
       });
     };
 
