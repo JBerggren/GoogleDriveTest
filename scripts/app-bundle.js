@@ -18,54 +18,66 @@ define('app',['exports'], function (exports) {
       var SCOPES = 'https://www.googleapis.com/auth/drive';
       var CLIENT_ID = '670438381526-24npq8td5gc18p48mrg1bdqnhqikra7m.apps.googleusercontent.com';
       var DISCOVERY_DOCS = ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'];
+      var DEVELOPER_KEY = "AIzaSyDNz5LgtO9P0KFhwAa2XUlpx63qf7SYjNE";
 
       this.loginService = new LoginService(CLIENT_ID, SCOPES, DISCOVERY_DOCS);
-      this.driveService = new DriveService();
+      this.driveService = new DriveService(DEVELOPER_KEY);
       this.files = [];
 
       var firstLoad = true;
+      this.pickerLoaded = false;
     }
 
     App.prototype.attached = function attached() {
       var _this = this;
 
       gapi.load('client:auth2', function () {
-        _this.login();
+        _this.loginService.initClient(function (loggedIn) {
+          if (!loggedIn && _this.firstLoad) {
+            _this.loginService.signIn();
+            _this.firstLoad = false;
+          }
+        });
+      });
+      gapi.load('picker', function () {
+        _this.pickerLoaded = true;
       });
     };
 
     App.prototype.login = function login() {
-      var _this2 = this;
-
-      this.loginService.initClient(function (loggedIn) {
-        if (!loggedIn && _this2.firstLoad) {
-          _this2.loginService.signIn();
-          _this2.firstLoad = false;
-        }
-      });
+      this.loginService.signIn();
     };
 
-    App.prototype.load = function load() {
-      var id = "0B4zMwTR7Nf6SdVRHQWVNUXhpY00";
-      var file = { id: id };
-      this.driveService.get(file, function (file) {
-        console.log(file);
+    App.prototype.load = function load(file) {
+      console.log("Loading file");
+      this.driveService.get({ id: file.id }).then(function (file) {
+        console.log(file.content);
       });
     };
 
     App.prototype.save = function save() {
       var file = {
         content: "Hello world!",
-        name: "Example"
+        name: "Example.json"
       };
 
-      this.driveService.save(file, function (file) {
-        console.log('saved file' + file.id);
+      this.driveService.save(file).then(function (file) {
+        console.log('saved file', file);
+      });
+    };
+
+    App.prototype.showPicker = function showPicker() {
+      var _this2 = this;
+
+      this.driveService.showPicker(function (file) {
+        console.log("File selected", file);
+        _this2.load(file);
       });
     };
 
     App.prototype.signOut = function signOut() {
       this.loginService.signOut();
+      this.loggedIn = false;
     };
 
     App.prototype.getFiles = function getFiles() {
@@ -206,6 +218,6 @@ define('resources/index',["exports"], function (exports) {
   exports.configure = configure;
   function configure(config) {}
 });
-define('text!app.html', ['module'], function(module) { module.exports = "<template>\r\n <button click.trigger=\"getFiles()\">List files</button>\r\n <button click.trigger=\"load()\">Load file</button>\r\n <button click.trigger=\"save()\">Save a file</button>\r\n <button click.trigger=\"signOut()\">Logout</button>\r\n</template>\r\n"; });
+define('text!app.html', ['module'], function(module) { module.exports = "<template>\r\n    <button click.trigger=\"login()\">Login</button>\r\n <button click.trigger=\"save()\">Save a file</button>\r\n <button click.trigger=\"showPicker()\" disabled.bind=\"!pickerLoaded\">Choose file</button>\r\n <button click.trigger=\"signOut()\">Logout</button>\r\n</template>\r\n"; });
 define('text!component.html', ['module'], function(module) { module.exports = "<template>\r\n    My component '${name}'\r\n</template>"; });
 //# sourceMappingURL=app-bundle.js.map
