@@ -3850,8 +3850,8 @@ function DriveService(developerKey) {
   //GENERIC METHODS
   //*****************************************************
 
-  this.get = function (file) {
-    return gapi.client.request({
+  this.get = function (file, callback) {
+    gapi.client.request({
       path: 'https://www.googleapis.com/drive/v3/files/' + file.id,
       method: 'get',
       params: {
@@ -3861,11 +3861,11 @@ function DriveService(developerKey) {
       }
     }).then(function (resp) {
       var retFile = { name: file.name, id: file.id, content: resp.body, parents: file.parents };
-      return retFile;
+      callback(retFile);
     });
   }
 
-  this.save = function (file) {
+  this.save = function (file, callback) {
     const boundary = '-------314159265358979323846';
     const delimiter = "\r\n--" + boundary + "\r\n";
     const close_delim = "\r\n--" + boundary + "--";
@@ -3886,7 +3886,7 @@ function DriveService(developerKey) {
       file.content +
       close_delim;
 
-    return gapi.client.request({
+    gapi.client.request({
       'path': '/upload/drive/v3/files',
       'method': 'POST',
       'params': { 'uploadType': 'multipart' },
@@ -3894,7 +3894,7 @@ function DriveService(developerKey) {
         'Content-Type': 'multipart/related; boundary="' + boundary + '"'
       },
       'body': multipartRequestBody
-    }).then(resp => { return resp.result });
+    }).then(function (resp) { callback(resp.result); });
   }
 
   this.list = function (resource, done) {
@@ -3926,14 +3926,36 @@ function DriveService(developerKey) {
     });
   }
 
-  this.showPicker = function (callback) {
+  this.showOpenPicker = function (callback) {
     var accessToken = gapi.auth2.getAuthInstance().currentUser.get().getAuthResponse().access_token;
-
     var picker = new google.picker.PickerBuilder().
-      addView(google.picker.ViewId.DOCS).
+      setParent('root').
+      //addView(google.picker.ViewId.RECENTLY_PICKED).
+      addView(new google.picker.DocsView().setIncludeFolders(true)).
+      //addView(new google.picker.WebCamView()).
+      enableFeature(google.picker.Feature.NAV_HIDDEN).
       setOAuthToken(accessToken).
       setDeveloperKey(developerKey).
-      setCallback(data => {
+      setCallback(function (data) {
+        if (data[google.picker.Response.ACTION] == google.picker.Action.PICKED) {
+          var doc = data[google.picker.Response.DOCUMENTS][0];
+          callback(doc);
+        }
+      }).
+      build();
+    picker.setVisible(true);
+  }
+
+  this.showSavePicker = function (callback) {
+    var view = new google.picker.DocsView(google.picker.ViewId.FOLDERS);
+    view.setMimeTypes('application/vnd.google-apps.folder');
+    view.setSelectFolderEnabled(true);
+    var accessToken = gapi.auth2.getAuthInstance().currentUser.get().getAuthResponse().access_token;
+    var picker = new google.picker.PickerBuilder().
+      addView(view).
+      setOAuthToken(accessToken).
+      setDeveloperKey(developerKey).
+      setCallback(function (data) {
         if (data[google.picker.Response.ACTION] == google.picker.Action.PICKED) {
           var doc = data[google.picker.Response.DOCUMENTS][0];
           callback(doc);
@@ -25379,4 +25401,4 @@ define('aurelia-testing/wait',['exports'], function (exports) {
     }, options);
   }
 });
-function _aureliaConfigureModuleLoader(){requirejs.config({"baseUrl":"src/","paths":{"text":"../scripts/text","aurelia-bootstrapper":"..\\node_modules\\aurelia-bootstrapper\\dist\\amd\\aurelia-bootstrapper","aurelia-binding":"..\\node_modules\\aurelia-binding\\dist\\amd\\aurelia-binding","aurelia-dependency-injection":"..\\node_modules\\aurelia-dependency-injection\\dist\\amd\\aurelia-dependency-injection","aurelia-framework":"..\\node_modules\\aurelia-framework\\dist\\amd\\aurelia-framework","aurelia-event-aggregator":"..\\node_modules\\aurelia-event-aggregator\\dist\\amd\\aurelia-event-aggregator","aurelia-history":"..\\node_modules\\aurelia-history\\dist\\amd\\aurelia-history","aurelia-loader":"..\\node_modules\\aurelia-loader\\dist\\amd\\aurelia-loader","aurelia-history-browser":"..\\node_modules\\aurelia-history-browser\\dist\\amd\\aurelia-history-browser","aurelia-loader-default":"..\\node_modules\\aurelia-loader-default\\dist\\amd\\aurelia-loader-default","aurelia-logging":"..\\node_modules\\aurelia-logging\\dist\\amd\\aurelia-logging","aurelia-logging-console":"..\\node_modules\\aurelia-logging-console\\dist\\amd\\aurelia-logging-console","aurelia-metadata":"..\\node_modules\\aurelia-metadata\\dist\\amd\\aurelia-metadata","aurelia-pal":"..\\node_modules\\aurelia-pal\\dist\\amd\\aurelia-pal","aurelia-pal-browser":"..\\node_modules\\aurelia-pal-browser\\dist\\amd\\aurelia-pal-browser","aurelia-path":"..\\node_modules\\aurelia-path\\dist\\amd\\aurelia-path","aurelia-polyfills":"..\\node_modules\\aurelia-polyfills\\dist\\amd\\aurelia-polyfills","aurelia-router":"..\\node_modules\\aurelia-router\\dist\\amd\\aurelia-router","aurelia-route-recognizer":"..\\node_modules\\aurelia-route-recognizer\\dist\\amd\\aurelia-route-recognizer","aurelia-templating":"..\\node_modules\\aurelia-templating\\dist\\amd\\aurelia-templating","aurelia-task-queue":"..\\node_modules\\aurelia-task-queue\\dist\\amd\\aurelia-task-queue","aurelia-templating-binding":"..\\node_modules\\aurelia-templating-binding\\dist\\amd\\aurelia-templating-binding","app-bundle":"../scripts/app-bundle"},"packages":[{"name":"aurelia-templating-resources","location":"../node_modules/aurelia-templating-resources/dist/amd","main":"aurelia-templating-resources"},{"name":"aurelia-templating-router","location":"../node_modules/aurelia-templating-router/dist/amd","main":"aurelia-templating-router"},{"name":"aurelia-testing","location":"../node_modules/aurelia-testing/dist/amd","main":"aurelia-testing"}],"stubModules":["text"],"shim":{},"bundles":{"app-bundle":["app","component","environment","main","resources/index"]}})}
+function _aureliaConfigureModuleLoader(){requirejs.config({"baseUrl":"src/","paths":{"text":"../scripts/text","aurelia-dependency-injection":"..\\node_modules\\aurelia-dependency-injection\\dist\\amd\\aurelia-dependency-injection","aurelia-bootstrapper":"..\\node_modules\\aurelia-bootstrapper\\dist\\amd\\aurelia-bootstrapper","aurelia-framework":"..\\node_modules\\aurelia-framework\\dist\\amd\\aurelia-framework","aurelia-binding":"..\\node_modules\\aurelia-binding\\dist\\amd\\aurelia-binding","aurelia-event-aggregator":"..\\node_modules\\aurelia-event-aggregator\\dist\\amd\\aurelia-event-aggregator","aurelia-history":"..\\node_modules\\aurelia-history\\dist\\amd\\aurelia-history","aurelia-loader":"..\\node_modules\\aurelia-loader\\dist\\amd\\aurelia-loader","aurelia-logging":"..\\node_modules\\aurelia-logging\\dist\\amd\\aurelia-logging","aurelia-metadata":"..\\node_modules\\aurelia-metadata\\dist\\amd\\aurelia-metadata","aurelia-history-browser":"..\\node_modules\\aurelia-history-browser\\dist\\amd\\aurelia-history-browser","aurelia-loader-default":"..\\node_modules\\aurelia-loader-default\\dist\\amd\\aurelia-loader-default","aurelia-pal":"..\\node_modules\\aurelia-pal\\dist\\amd\\aurelia-pal","aurelia-pal-browser":"..\\node_modules\\aurelia-pal-browser\\dist\\amd\\aurelia-pal-browser","aurelia-logging-console":"..\\node_modules\\aurelia-logging-console\\dist\\amd\\aurelia-logging-console","aurelia-path":"..\\node_modules\\aurelia-path\\dist\\amd\\aurelia-path","aurelia-polyfills":"..\\node_modules\\aurelia-polyfills\\dist\\amd\\aurelia-polyfills","aurelia-templating-binding":"..\\node_modules\\aurelia-templating-binding\\dist\\amd\\aurelia-templating-binding","aurelia-route-recognizer":"..\\node_modules\\aurelia-route-recognizer\\dist\\amd\\aurelia-route-recognizer","aurelia-router":"..\\node_modules\\aurelia-router\\dist\\amd\\aurelia-router","aurelia-templating":"..\\node_modules\\aurelia-templating\\dist\\amd\\aurelia-templating","aurelia-task-queue":"..\\node_modules\\aurelia-task-queue\\dist\\amd\\aurelia-task-queue","app-bundle":"../scripts/app-bundle"},"packages":[{"name":"aurelia-templating-resources","location":"../node_modules/aurelia-templating-resources/dist/amd","main":"aurelia-templating-resources"},{"name":"aurelia-templating-router","location":"../node_modules/aurelia-templating-router/dist/amd","main":"aurelia-templating-router"},{"name":"aurelia-testing","location":"../node_modules/aurelia-testing/dist/amd","main":"aurelia-testing"}],"stubModules":["text"],"shim":{},"bundles":{"app-bundle":["app","component","environment","main","resources/index"]}})}
